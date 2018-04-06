@@ -22,7 +22,6 @@ class FingerprintHandler extends FingerprintManager.AuthenticationCallback{
         if(ActivityCompat.checkSelfPermission(context, Manifest.permission.USE_FINGERPRINT) !=
                 PackageManager.PERMISSION_GRANTED){
             Toast.makeText(context,"oGRANTED",Toast.LENGTH_LONG).show();
-
         }
 
         fingerprintManager.authenticate(cryptoObject,cancellationSignal,

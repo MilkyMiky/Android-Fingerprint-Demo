@@ -6,6 +6,7 @@ import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyProperties;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
@@ -19,6 +20,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
+import java.util.Enumeration;
 
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
@@ -38,41 +40,75 @@ public class MainActivity extends AppCompatActivity {
 
         Button button = (Button) findViewById(R.id.button);
 
-        KeyguardManager keymanger = (KeyguardManager) getSystemService(KEYGUARD_SERVICE);
-        FingerprintManager fingerprintManager = (FingerprintManager) getSystemService(FINGERPRINT_SERVICE);
+        try {
+            try {
+                keyStore = KeyStore.getInstance("AndroidKeyStore");
 
+            } catch (KeyStoreException e) {
+                e.printStackTrace();
+            }
+            keyStore.load(null);
+
+            try {
+
+
+                Log.d("log","KeyStore Size " + keyStore.size());
+
+                for( int i =0; i< keyStore.size(); i++) {
+                    Log.d("log","KeyStore Alias" + keyStore.aliases().nextElement());
+                }
+
+
+
+
+
+            } catch (KeyStoreException e) {
+                e.printStackTrace();
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (CertificateException e) {
+            e.printStackTrace();
+        }
+
+//        KeyguardManager keymanger = (KeyguardManager) getSystemService(KEYGUARD_SERVICE);
+        FingerprintManager fingerprintManager = (FingerprintManager) getSystemService(FINGERPRINT_SERVICE);
+//
         if (fingerprintManager.isHardwareDetected()) {
             Toast.makeText(this,"DETECTED",Toast.LENGTH_LONG).show();
         } else {
             Toast.makeText(this, "NOT DETECTED", Toast.LENGTH_LONG).show();
         }
-
-        if(fingerprintManager.hasEnrolledFingerprints()){
-                Toast.makeText(this,"Has enrolled",Toast.LENGTH_LONG).show();
-        }
-
-        if(keymanger.isKeyguardSecure()){
-                Toast.makeText(this,"Secured",Toast.LENGTH_LONG).show();
-        }
-
-        getKey();
-
-        if( cipherInit()){
-
-                FingerprintManager.CryptoObject cryptoObject = new FingerprintManager.CryptoObject(cipher);
-                FingerprintHandler handler = new FingerprintHandler(this);
-                handler.startAuth(fingerprintManager,cryptoObject);
-
-            }
-
-
-
-        button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-            }
-        });
+//
+//        if(fingerprintManager.hasEnrolledFingerprints()){
+//                Toast.makeText(this,"Has enrolled",Toast.LENGTH_LONG).show();
+//        }
+//
+//        if(keymanger.isKeyguardSecure()){
+//                Toast.makeText(this,"Secured",Toast.LENGTH_LONG).show();
+//        }
+//
+//        getKey();
+//
+//        if( cipherInit()){
+//
+//                FingerprintManager.CryptoObject cryptoObject = new FingerprintManager.CryptoObject(cipher);
+//                FingerprintHandler handler = new FingerprintHandler(this);
+//                handler.startAuth(fingerprintManager,cryptoObject);
+//
+//            }
+//
+//
+//
+//        button.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//
+//            }
+//        });
 
 
     }
@@ -89,6 +125,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
             try {
+
                 keyStore.load(null);
                 SecretKey key = (SecretKey) keyStore.getKey(KEY_NAME,null);
                 cipher.init(Cipher.ENCRYPT_MODE, key);
