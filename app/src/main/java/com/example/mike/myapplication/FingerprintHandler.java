@@ -1,58 +1,56 @@
 package com.example.mike.myapplication;
 
-import android.Manifest;
 import android.content.Context;
-import android.content.pm.PackageManager;
+import android.content.SharedPreferences;
 import android.hardware.fingerprint.FingerprintManager;
 import android.os.CancellationSignal;
-import android.support.v4.app.ActivityCompat;
 import android.widget.Toast;
 
-class FingerprintHandler extends FingerprintManager.AuthenticationCallback{
+import javax.crypto.Cipher;
 
-    private Context context;
+class FingerprintHandler extends FingerprintManager.AuthenticationCallback {
 
-    public FingerprintHandler(Context context) {
-        this.context = context;
+    private Context mContext;
+    private CancellationSignal mCancellationSignal;
+    private SharedPreferences mSharedPreferences;
+    private IAuthenticateListener mListener;
+
+    FingerprintHandler(Context context, SharedPreferences sharedPreferences, IAuthenticateListener listener) {
+        mContext = context;
+        mSharedPreferences = sharedPreferences;
+        mListener = listener;
+        mCancellationSignal = new CancellationSignal();
     }
 
-    public void startAuth(FingerprintManager fingerprintManager, FingerprintManager.CryptoObject cryptoObject) {
-
-        CancellationSignal cancellationSignal = new CancellationSignal();
-        if(ActivityCompat.checkSelfPermission(context, Manifest.permission.USE_FINGERPRINT) !=
-                PackageManager.PERMISSION_GRANTED){
-            Toast.makeText(context,"oGRANTED",Toast.LENGTH_LONG).show();
-        }
-
-        fingerprintManager.authenticate(cryptoObject,cancellationSignal,
-                0,this,null);
+    void startAuth(FingerprintManager fingerprintManager, FingerprintManager.CryptoObject cryptoObject) {
+        fingerprintManager.authenticate(cryptoObject, mCancellationSignal, 0, this, null);
     }
 
     @Override
     public void onAuthenticationError(int errorCode, CharSequence errString) {
-        super.onAuthenticationError(errorCode, errString);
-        Toast.makeText(context,"onAuthenticationError",Toast.LENGTH_LONG).show();
-
+        Toast.makeText(mContext, errString, Toast.LENGTH_SHORT).show();
     }
 
     @Override
     public void onAuthenticationHelp(int helpCode, CharSequence helpString) {
-        super.onAuthenticationHelp(helpCode, helpString);
-        Toast.makeText(context,"onAuthenticationHelp",Toast.LENGTH_LONG).show();
-
+        Toast.makeText(mContext, helpString, Toast.LENGTH_SHORT).show();
     }
 
     @Override
     public void onAuthenticationSucceeded(FingerprintManager.AuthenticationResult result) {
-        super.onAuthenticationSucceeded(result);
-        Toast.makeText(context," onAuthenticationSucceeded",Toast.LENGTH_LONG).show();
 
+        Cipher cipher = result.getCryptoObject().getCipher();
+        String encoded = mSharedPreferences.getString(LoginActivity.KEY_PASSWORD, null);
+        String decoded = Utils.decryptString(encoded, cipher);
+        mListener.onAuthenticate(decoded);
     }
 
     @Override
     public void onAuthenticationFailed() {
-        super.onAuthenticationFailed();
-        Toast.makeText(context,"onAuthenticationFailed",Toast.LENGTH_LONG).show();
+        Toast.makeText(mContext, "onAuthenticationFailed", Toast.LENGTH_SHORT).show();
+    }
 
+    void cancel() {
+        if (mCancellationSignal != null) mCancellationSignal.cancel();
     }
 }

@@ -21,9 +21,15 @@
         android:id="@+id/editText"/>
 
     <Button
+        android:text="Sign up"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/btn_sign"/>
+
+    <Button
         android:text="Login"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/button"/>
+        android:id="@+id/btn_login"/>
 </LinearLayout>
 
